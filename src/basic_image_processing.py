@@ -11,6 +11,8 @@ def main(args):
 
     print("Initiating some awesome basic image processing!")
 
+    # Importing arguments from the arguments parser
+
     data_dir = args.data_dir
 
     out_dir = args.out_dir
@@ -31,16 +33,18 @@ class SplittingPicturesIntoQuadrants:
 
         if self.data_dir is None:
 
-            self.data_dir = self.setting_default_data_dir()
+            self.data_dir = self.setting_default_data_dir()  # Setting default data directory.
 
         if self.out_dir is None:
 
-            self.out_dir = self.setting_default_out_dir()
+            self.out_dir = self.setting_default_out_dir()  # Setting default output directory.
 
-        self.out_dir.mkdir(parents=True, exist_ok=True)
+        self.out_dir.mkdir(parents=True, exist_ok=True)  # Making sure output directory exists.
 
-        files = self.get_filepaths_from_data_dir(self.data_dir)
+        files = self.get_filepaths_from_data_dir(self.data_dir)  # Getting all the absolute filepaths from the data directory.
 
+        # For each file in the data directory, load the image, get the height, width and number of channels
+        # and split the image into equally sized quadrants and save these into the output directory.
         for file in files:
 
             filename = self.get_filename(file)
@@ -58,6 +62,11 @@ class SplittingPicturesIntoQuadrants:
                                       channels=channels)
 
     def setting_default_data_dir(self):
+        """Setting a default data directory
+
+        Returns:
+            PosixPath: Data directory
+        """
 
         root_dir = Path.cwd()  # Setting root directory.
 
@@ -66,7 +75,11 @@ class SplittingPicturesIntoQuadrants:
         return data_dir
 
     def setting_default_out_dir(self):
+        """Setting a default Output directory
 
+        Returns:
+            PosixPath: Output directory
+        """
         root_dir = Path.cwd()  # Setting root directory.
 
         data_dir = root_dir / "data" / "makeup_splits"  # Setting data directory.
@@ -100,6 +113,14 @@ class SplittingPicturesIntoQuadrants:
         return filename
 
     def load_image(self, file):
+        """Loads an image.
+
+        Args:
+            file (PosixPath): A path to an image file.
+
+        Returns:
+            numpy.ndarray: NumPy Array containg all the pixels for the image.
+        """
 
         image = cv2.imread(str(file))
 
@@ -108,34 +129,49 @@ class SplittingPicturesIntoQuadrants:
 
 
     def get_width_height_and_n_channel(self, image):
+        """Gets the shape of an image.
+
+        Args:
+            image (numpy.ndarray): A NumPy array containing the BGR pixel values.
+
+        Returns:
+            int: The height of an image.
+            int: The width of an image.
+            int: The number of channels of an image.
+        """
 
         height, width, channels = image.shape[0], image.shape[1], image.shape[2]
 
         return height, width, channels
 
-    def split_and_save_image(self, image, out_path, height, width, channels):
+    def split_and_save_image(self, image, out_path, height, width):
+        """Splits an image into four equally sized quadrants and saves it into an output directory.
 
-        filename = os.path.split(out_path)[1]
+        Args:
+            image (numpy.ndarray): NumPy Array containg all the pixels for the image
+            out_path (PosixPath): Output path for the image.
+            int: The height of the image.
+            int: The width of the image.
+        """
+        
 
-        out_path = os.path.split(out_path)[0] + "/"
+        filename = os.path.split(out_path)[1]  # Gets the filename
+
+        out_path = os.path.split(out_path)[0] + "/"  # Appends a slash to the output directory
 
         filename_no_extention = os.path.splitext(filename)[0]  # Removal of file extenton
-
-        imgheight=image.shape[0]
-        
-        imgwidth=image.shape[1]
      
-        middle_height = imgheight//2
+        middle_height = height//2  # Half the height in integer
 
-        middle_width = imgwidth//2
+        middle_width = width//2  # Half the width in integer
 
         upper_left = image[0:middle_height, 0:middle_width]
 
-        upper_right = image[0:middle_height, middle_width:imgwidth]
+        upper_right = image[0:middle_height, middle_width:width]
 
-        lower_right = image[middle_height:imgheight, middle_width:imgwidth]
+        lower_right = image[middle_height:height, middle_width:width]
         
-        lower_left = image[middle_height:imgheight, 0:middle_width]
+        lower_left = image[middle_height:height, 0:middle_width]
 
         cv2.imwrite(f"{out_path}{filename_no_extention}_upper_left_{str(middle_width)}x{str(middle_height)}.jpg", upper_left)
 
