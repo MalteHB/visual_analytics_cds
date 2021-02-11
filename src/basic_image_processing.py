@@ -58,8 +58,7 @@ class SplittingPicturesIntoQuadrants:
             self.split_and_save_image(image=image, 
                                       out_path=out_path, 
                                       height=height, 
-                                      width=width, 
-                                      channels=channels)
+                                      width=width)
 
     def setting_default_data_dir(self):
         """Setting a default data directory
