@@ -65,7 +65,6 @@ class ImageSearch:
 
 
 
-            hist1 = cv2.calcHist(images=[image], channels=[0,1,2], mask=None, histSize=[8,8,8], ranges=[0,256, 0, 256, 0, 256])
 
             NEC_VAR = self.YOUR_FUNCTION
 
@@ -73,6 +72,8 @@ class ImageSearch:
 
         """YOUR CODE
         """
+        hist1 = cv2.calcHist(images=[image], channels=[0,1,2], mask=None, histSize=[8,8,8], ranges=[0,256, 0, 256, 0, 256])
+
 
         return # NECESSARY VARIABELS
 
