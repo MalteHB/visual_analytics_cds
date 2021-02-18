@@ -15,20 +15,20 @@ def main(args):
 
     # Importing arguments from the arguments parser
 
-    data_dir = args.data_dir
+    data_dir = args.dd
 
-    out_dir = args.out_dir
+    out_dir = args.od
 
-    target_image_path = args.target_image_path
+    target_image_filename = args.tif
 
-    ImageSearch(data_dir=data_dir, out_dir=out_dir)
+    ImageSearch(data_dir=data_dir, out_dir=out_dir, target_image_path=target_image_filename)
 
     print(f"DONE! Have a nice day. :-)")
 
 
 class ImageSearch:
 
-    def __init__(self, data_dir=None, out_dir=None):
+    def __init__(self, data_dir=None, out_dir=None, target_image_filename=None):
 
         self.data_dir = data_dir
 
@@ -50,7 +50,8 @@ class ImageSearch:
 
         files = get_filepaths_from_data_dir(self.data_dir)  # Getting all the absolute filepaths from the data directory.
 
-        target_image
+        target_image_filename = self.target_image_filename
+
 
         # For each file in the data directory, load the image, get the height, width and number of channels
         # and split the image into equally sized quadrants and save these into the output directory.
@@ -62,9 +63,18 @@ class ImageSearch:
 
             out_path = self.out_dir / filename
 
-            
+
 
             hist1 = cv2.calcHist(images=[image], channels=[0,1,2], mask=None, histSize=[8,8,8], ranges=[0,256, 0, 256, 0, 256])
+
+            NEC_VAR = self.YOUR_FUNCTION
+
+    def YOUR_FUNCTION(self, NECESSARY_VARIABLES):
+
+        """YOUR CODE
+        """
+
+        return # NECESSARY VARIABELS
 
 
 if __name__ == "__main__":
