@@ -1,0 +1,19 @@
+# Clone the GitHub
+git clone https://github.com/MalteHB/visual_analytics_cds.git
+cd visual_analytics_cds 
+
+# Install anaconda for your OS. See https://docs.anaconda.com/anaconda/install/
+
+# Create and activate conda environment:
+conda create -n cds python=3.8
+conda activate cds
+
+# Install requirements
+pip install -r requirements.txt
+
+# Conda install packages
+conda install opencv -y
+conda install ipykernel -y
+
+# Run the image search script. 
+python src/image_search.py 

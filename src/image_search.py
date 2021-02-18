@@ -4,10 +4,12 @@ import os
 from pathlib import Path
 import argparse
 
+import pandas as pd
 import numpy as np
 import cv2
+from tqdm import tqdm
 
-from utils.utils import setting_default_data_dir, setting_default_out_dir, get_filepaths_from_data_dir, get_filename, load_image
+from utils.utils import setting_default_data_dir, setting_default_out_dir, setting_default_target_path, get_filepaths_from_data_dir, get_filename, load_image
 
 def main(args):
 
@@ -19,16 +21,16 @@ def main(args):
 
     out_dir = args.od
 
-    target_image_filename = args.tif
+    target_image_filepath = args.tif
 
-    ImageSearch(data_dir=data_dir, out_dir=out_dir, target_image_path=target_image_filename)
+    ImageSearch(data_dir=data_dir, out_dir=out_dir, target_image_filepath=target_image_filepath)
 
     print(f"DONE! Have a nice day. :-)")
 
 
 class ImageSearch:
 
-    def __init__(self, data_dir=None, out_dir=None, target_image_filename=None):
+    def __init__(self, data_dir=None, out_dir=None, target_image_filepath=None):
 
         self.data_dir = data_dir
 
@@ -50,32 +52,81 @@ class ImageSearch:
 
         files = get_filepaths_from_data_dir(self.data_dir)  # Getting all the absolute filepaths from the data directory.
 
-        target_image_filename = self.target_image_filename
+        self.target_image_filepath = target_image_filepath
 
+        if self.target_image_filepath is None:
+
+            self.target_image_filepath = setting_default_target_path()  # Setting default data directory.
+
+            print(f"\nTarget image filepath is not specified.\nSetting it to '{self.target_image_filepath}'.\n")
+
+        target_image = load_image(self.target_image_filepath)
+
+        filenames = []  # Creating empty variable for filenames.
+
+        distances = []  # Creating empty list for Chi-Squared distances.
 
         # For each file in the data directory, load the image, get the height, width and number of channels
         # and split the image into equally sized quadrants and save these into the output directory.
-        for file in files:
+        for file in tqdm(files):
 
-            filename = get_filename(file)
+            if file != self.target_image_filepath:  # Making sure that the comparison does not happen to the target image.
 
-            image = load_image(file)
+                filename = get_filename(file)  # Getting filename.
 
-            out_path = self.out_dir / filename
+                comparison_image = load_image(file)  # Loading comparison image.
+
+                chisqr = self.get_chisqr(target_image, comparison_image)
+
+                filenames.append(filename)  # Appending the filename.
+
+                distances.append(chisqr)  # Appending the Chi-Squared distance measure.
+
+        data_dict = {"filename": filenames,
+                     "distance": distances}
+
+        df = pd.DataFrame(data=data_dict)
+
+        write_path = self.out_dir / "distances.csv"
+
+        df.to_csv(write_path)
+
+        print(df)
 
 
+    def get_chisqr(self, image1, image2):
 
+        hist1 = cv2.calcHist(images=[image1],  # Choosing the image.
+                             channels=[0,1,2],  # Setting the channels.
+                             mask=None,  # Not using a mask.
+                             histSize=[8,8,8],  # Setting our histogram bins to be of size 8.
+                             ranges=[0,256, 0, 256, 0, 256])  # Ranges for the possible pixel values.
 
-            NEC_VAR = self.YOUR_FUNCTION
+        hist2 = cv2.calcHist(images=[image2],  # Choosing the image.
+                             channels=[0,1,2],  # Setting the channels.
+                             mask=None,  # Not using a mask.
+                             histSize=[8,8,8],  # Setting our histogram bins to be of size 8.
+                             ranges=[0,256, 0, 256, 0, 256])  # Ranges for the possible pixel values.
 
-    def YOUR_FUNCTION(self, NECESSARY_VARIABLES):
+        hist1_norm = cv2.normalize(hist1,  # Parsing first histogram
+                                   hist1,  # Parsing first histogram
+                                   0,255,  # Setting the range of pixels
+                                   cv2.NORM_MINMAX)  # Choosing the normalization 
 
-        """YOUR CODE
-        """
-        hist1 = cv2.calcHist(images=[image], channels=[0,1,2], mask=None, histSize=[8,8,8], ranges=[0,256, 0, 256, 0, 256])
+        hist2_norm = cv2.normalize(hist2,  # Parsing second histogram
+                                   hist2,  # Parsing second histogram
+                                   0,255,  # Setting the range of pixels
+                                   cv2.NORM_MINMAX)  # Choosing the normalization 
 
+        chisqr = round(  # Using the round function to round to 2 decimals.
+                cv2.compareHist(
+                    hist1_norm,  # First normalized histogram.
+                    hist2_norm,  # Second normalized histogram.
+                    cv2.HISTCMP_CHISQR  # Metric for comparison
+                )
+        )
 
-        return # NECESSARY VARIABELS
+        return chisqr
 
 
 if __name__ == "__main__":
@@ -95,9 +146,9 @@ if __name__ == "__main__":
                         required=False)               
 
     parser.add_argument('--tif',
-                        metavar="target_image_filename",
+                        metavar="target_image_filepath",
                         type=str,
-                        help='Name of the file of the target image',
+                        help='Path of the file of the target image',
                         required=False)           
 
     main(parser.parse_args())

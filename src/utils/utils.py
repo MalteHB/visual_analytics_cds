@@ -31,6 +31,18 @@ def setting_default_out_dir():
 
     return out_dir
 
+def setting_default_target_path():
+    """Setting a default Output directory
+
+    Returns:
+        PosixPath: Output directory
+    """
+    root_dir = Path.cwd()  # Setting root directory.
+
+    target_path = root_dir / "data" / "17flowers" / "image_1360.jpg"  # Setting target path.
+
+    return target_path
+
 
 def get_filepaths_from_data_dir(data_dir, file_extension="*.jpg"):
     """Creates a list containing paths to filenames in a data directoryl
