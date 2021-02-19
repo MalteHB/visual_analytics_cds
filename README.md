@@ -12,8 +12,8 @@ To create an environment capable of running the `.py`files in this repo create r
 
 ```bash
 # Clone the GitHub
-git clone https://github.com/MalteHB/language_analytics_cds.git
-cd language_analytics_cds 
+git clone https://github.com/MalteHB/visual_analytics_cds.git
+cd visual_analytics_cds 
 
 # Create conda env:
 conda create -n cds python=3.8
