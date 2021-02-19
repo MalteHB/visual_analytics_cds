@@ -5,41 +5,49 @@ from pathlib import Path
 import cv2
 
 
-def setting_default_data_dir():
+def setting_default_data_dir(assignment=2):
     """Setting a default data directory
 
     Returns:
         PosixPath: Data directory
     """
 
-    root_dir = Path.cwd()  # Setting root directory.
+    if assignment == 2:
+            
+        root_dir = Path.cwd()  # Setting root directory.
 
-    data_dir = root_dir / "data" / "17flowers"  # Setting data directory.
+        data_dir = root_dir / "data" / "17flowers"  # Setting data directory.
 
     return data_dir
 
 
-def setting_default_out_dir():
+def setting_default_out_dir(assignment=2):
     """Setting a default Output directory
 
     Returns:
         PosixPath: Output directory
     """
-    root_dir = Path.cwd()  # Setting root directory.
+    
+    if assignment == 2:
 
-    out_dir = root_dir / "out"  # Setting data directory.
+        root_dir = Path.cwd()  # Setting root directory.
+
+        out_dir = root_dir / "out"  # Setting data directory.
 
     return out_dir
 
-def setting_default_target_path():
+def setting_default_target_path(assignment=2):
     """Setting a default Output directory
 
     Returns:
         PosixPath: Output directory
     """
-    root_dir = Path.cwd()  # Setting root directory.
 
-    target_path = root_dir / "data" / "17flowers" / "image_1360.jpg"  # Setting target path.
+    if assignment == 2:
+        
+        root_dir = Path.cwd()  # Setting root directory.
+
+        target_path = root_dir / "data" / "17flowers" / "image_1360.jpg"  # Setting target path.
 
     return target_path
 

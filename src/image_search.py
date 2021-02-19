@@ -36,7 +36,7 @@ class ImageSearch:
 
         if self.data_dir is None:
 
-            self.data_dir = setting_default_data_dir()  # Setting default data directory.
+            self.data_dir = setting_default_data_dir(assignment=2)  # Setting default data directory.
 
             print(f"\nData directory is not specified.\nSetting it to '{self.data_dir}'.")
 
@@ -44,7 +44,7 @@ class ImageSearch:
 
         if self.out_dir is None:
 
-            self.out_dir = setting_default_out_dir()  # Setting default output directory.
+            self.out_dir = setting_default_out_dir(assignment=2)  # Setting default output directory.
 
             print(f"\nOutput directory is not specified.\nSetting it to '{self.out_dir}'.")
 
@@ -56,7 +56,7 @@ class ImageSearch:
 
         if self.target_image_filepath is None:
 
-            self.target_image_filepath = setting_default_target_path()  # Setting default data directory.
+            self.target_image_filepath = setting_default_target_path(assignment=2)  # Setting default data directory.
 
             print(f"\nTarget image filepath is not specified.\nSetting it to '{self.target_image_filepath}'.\n")
 
