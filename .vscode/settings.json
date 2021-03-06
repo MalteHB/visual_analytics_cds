@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "C:\\tools\\Anaconda3\\envs\\cds\\python.exe"
+    "python.pythonPath": "C:\\tools\\Anaconda3\\envs\\cds\\python.exe",
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true
 }
