@@ -18,7 +18,8 @@ def fetch_mnist():
 
     X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
 
-    return X, y 
+    return X, y
+
 
 def setting_default_data_dir(assignment=2):
     """Setting a default data directory
@@ -28,7 +29,7 @@ def setting_default_data_dir(assignment=2):
     """
 
     if assignment == 2:
-            
+
         root_dir = Path.cwd()  # Setting root directory.
 
         data_dir = root_dir / "data" / "17flowers"  # Setting data directory.
@@ -38,6 +39,16 @@ def setting_default_data_dir(assignment=2):
         root_dir = Path.cwd()  # Setting root directory.
 
         data_dir = root_dir / "data" / "ass3"  # Setting data directory.
+
+    if assignment == 5:
+
+        root_dir = Path.cwd()
+
+        train_data_dir = root_dir / "data" / "impressionist_images" / "training" / "training"
+
+        val_data_dir = root_dir / "data" / "impressionist_images" / "validation" / "validation"
+
+        return train_data_dir, val_data_dir
 
     return data_dir
 
