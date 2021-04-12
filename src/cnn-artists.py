@@ -1,21 +1,14 @@
-
 import argparse
-
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-from pathlib import Path
-import PIL
 import tensorflow as tf
 
-from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
 from sklearn.metrics import classification_report
 
-from utils.utils import setting_default_data_dir, setting_default_out_dir
-
+from utils.utils import setting_default_data_dir
 
 
 def main(args):
@@ -26,32 +19,33 @@ def main(args):
 
     random_state = args.rs
 
-    batch_size = 32
-img_height = 180
-img_width = 180
+    train_data_dir = args.tdd
 
-    data_dir = args.dd
+    val_data_dir = args.vdd
 
-    test_size = args.ts
+    batch_size = args.bs
 
-    scaling = args.s
+    img_height = args.img_h
 
-    minmax = args.mm
+    img_width = args.img_w
 
-    epochs = args.e
+    cnn = CNNClassification()
 
-    early_stopping = args.es
+    cnn.preprocess_data(train_data_dir=train_data_dir,
+                        val_data_dir=val_data_dir,
+                        img_height=img_height,
+                        img_width=img_width,
+                        batch_size=batch_size,
+                        random_state=random_state)
 
-    nn_mnist = NeuralNetworkMNIST()
+    cnn.create_model(img_height=img_height,
+                     img_width=img_width)
 
-    X_train, X_test, y_train, y_test = nn_mnist.split_and_preprocess_data(random_state=random_state,
-                                                                          test_size=test_size,
-                                                                          scaling=scaling,
-                                                                          minmax=minmax)
+    cnn.train()
 
-    nn_model = nn_mnist.train(X_train, y_train, epochs=epochs, early_stopping=early_stopping)
+    cnn.plot_training()
 
-    nn_mnist.print_eval_metrics(nn_model, X_test, y_test)
+    cnn.evaluate_model()
 
     print("DONE! Have a nice day. :-)")
 
@@ -59,10 +53,7 @@ img_width = 180
 class CNNClassification:
 
     def __init__(self):
-
-        
-            
-        
+        return
 
     def preprocess_data(self, train_data_dir, val_data_dir, img_height, img_width, batch_size, random_state=1):
         """Splits the data into a train/test-split
@@ -75,7 +66,7 @@ class CNNClassification:
         Returns:
             X_train, X_test, y_train, y_test: Train/test-split of the data.
         """
-        
+
         self.train_data_dir = train_data_dir
 
         self.val_data_dir = val_data_dir
@@ -102,7 +93,7 @@ class CNNClassification:
 
         self.val_images = np.concatenate([images for images, labels in self.val_ds], axis=0)
 
-        val_labels = np.concatenate([labels for images, labels in self.val_ds], axis=0)
+        self.val_labels = np.concatenate([labels for images, labels in self.val_ds], axis=0)
 
         self.train_class_names = self.train_ds.class_names
 
@@ -142,22 +133,22 @@ class CNNClassification:
 
     def train(self, epochs=10):
 
-        history = self.model.fit(self.train_ds,
-                                 validation_data=self.val_ds,
-                                 epochs=epochs
-                                 )
+        self.epochs = epochs
 
-        return history
+        self.history = self.model.fit(self.train_ds,
+                                      validation_data=self.val_ds,
+                                      epochs=self.epochs
+                                      )
 
-    def plot_training(self, history):
+    def plot_training(self, history=None):
 
-        acc = history.history['accuracy']
-        val_acc = history.history['val_accuracy']
+        acc = self.history.history['accuracy']
+        val_acc = self.history.history['val_accuracy']
 
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
+        loss = self.history.history['loss']
+        val_loss = self.history.history['val_loss']
 
-        epochs_range = range(epochs)
+        epochs_range = range(self.epochs)
 
         plt.figure(figsize=(8, 8))
         plt.subplot(1, 2, 1)
@@ -193,26 +184,24 @@ if __name__ == "__main__":
                         required=False,
                         default=1)
 
-    parser.add_argument('--ts',
-                        metavar="Test Size",
+    parser.add_argument('--tdd',
+                        metavar="Train Data Directory",
+                        type=str,
+                        help='Path to the training data',
+                        required=False)
+
+    parser.add_argument('--vdd',
+                        metavar="Validation Data Directory",
+                        type=str,
+                        help='Path to the validation data',
+                        required=False)
+
+    parser.add_argument('--bs',
+                        metavar="Batch Size",
                         type=int,
-                        help='The test size of the test data.',
+                        help='The batch size of the model.',
                         required=False,
-                        default=2500)
-
-    parser.add_argument('--s',
-                        metavar="Scaling",
-                        type=bool,
-                        help='Whether to scale the data of not to.',
-                        required=False,
-                        default=False)
-
-    parser.add_argument('--mm',
-                        metavar="MinMax",
-                        type=bool,
-                        help='Whether to MinMax normalize the data of not to.',
-                        required=False,
-                        default=True)
+                        default=32)
 
     parser.add_argument('--e',
                         metavar="Epochs",
@@ -221,11 +210,18 @@ if __name__ == "__main__":
                         required=False,
                         default=100)
 
-    parser.add_argument('--es',
-                        metavar="Early Stopping",
-                        type=bool,
-                        help='Whether to stop the training before overfitting the data.',
+    parser.add_argument('--img_h',
+                        metavar="Image Height",
+                        type=int,
+                        help='Pixel height for image rescaling.',
                         required=False,
-                        default=True)
+                        default=180)
+
+    parser.add_argument('--img_w',
+                        metavar="Image Width",
+                        type=int,
+                        help='Pixel width for image rescaling.',
+                        required=False,
+                        default=180)
 
     main(parser.parse_args())
