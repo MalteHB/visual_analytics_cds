@@ -14,6 +14,6 @@ pip install -r requirements.txt
 # Conda install packages
 conda install opencv ipykernel -y
 
-# Run the classification scripts. 
+# Run the classification script. 
 # See the available flags by using the '--help' after the command.
 python src/cnn-artists.py
