@@ -65,6 +65,12 @@ def setting_default_out_dir(assignment=2):
         root_dir = Path.cwd()  # Setting root directory.
 
         out_dir = root_dir / "out"  # Setting data directory.
+        
+    if assignment == 5:
+    
+        root_dir = Path.cwd()
+        
+        out_dir = root_dir / "out"
 
     return out_dir
 

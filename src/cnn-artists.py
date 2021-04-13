@@ -8,7 +8,7 @@ from tensorflow.keras.models import Sequential
 
 from sklearn.metrics import classification_report
 
-from utils.utils import setting_default_data_dir
+from utils.utils import setting_default_data_dir, setting_default_out_dir
 
 
 def main(args):
@@ -56,17 +56,16 @@ class CNNClassification:
         return
 
     def preprocess_data(self, train_data_dir, val_data_dir, img_height, img_width, batch_size, random_state=1):
-        """Splits the data into a train/test-split
+        """Preprocesses the data from the directories into TensorFlow Dataset objects that can be used directly with the Tensorflow Keras Sequential API.
 
         Args:
-            random_state (int, optional): The random state. Defaults to 9.
-            train_size (int, optional): Size of the training data. Defaults to 7500.
-            test_size (int, optional): Size of the test data. Defaults to 2500.
-
-        Returns:
-            X_train, X_test, y_train, y_test: Train/test-split of the data.
+            train_data_dir (PosixPath): Path to the training directory.
+            val_data_dir (PosixPath): Path to the validation directory.
+            img_height (int): Height of each image to use for rescaling.
+            img_width (int): Width of each image to use for rescaling.
+            batch_size (int): Batch size to use when loading data.
+            random_state (int, optional): Random state to use when shuffling. Defaults to 1.
         """
-
         self.train_data_dir = train_data_dir
 
         self.val_data_dir = val_data_dir
@@ -78,6 +77,10 @@ class CNNClassification:
         if val_data_dir is None:
 
             _, self.val_data_dir = setting_default_data_dir(assignment=5)
+
+        self.out_dir = setting_default_out_dir()
+
+        self.out_file_path = self.out_dir / "classification_report.txt"
 
         self.train_ds = tf.keras.preprocessing.image_dataset_from_directory(self.train_data_dir,
                                                                             seed=random_state,
@@ -131,7 +134,7 @@ class CNNClassification:
 
             self.model.summary()
 
-    def train(self, epochs=10):
+    def train(self, epochs=5):
 
         self.epochs = epochs
 
@@ -162,15 +165,23 @@ class CNNClassification:
         plt.plot(epochs_range, val_loss, label='Validation Loss')
         plt.legend(loc='upper right')
         plt.title('Training and Validation Loss')
-        plt.show()
 
-    def evaluate_model(self):
+        out_file = self.out_dir / "train_val_history.png"
+        plt.savefig(out_file)
 
-        predictions = self.model.predict(self.val_images, batch_size=32)
+    def evaluate_model(self, batch_size=32):
 
-        print(classification_report(self.val_labels,
-                                    predictions.argmax(axis=1),
-                                    target_names=self.val_class_names))
+        predictions = self.model.predict(self.val_images, batch_size=batch_size)
+
+        eval_report = classification_report(self.val_labels,
+                                            predictions.argmax(axis=1),
+                                            target_names=self.val_class_names)
+
+        print(eval_report)
+
+        out_file = self.out_dir / "classification_report.txt"
+
+        out_file.write_text(eval_report)
 
 
 if __name__ == "__main__":
@@ -208,20 +219,20 @@ if __name__ == "__main__":
                         type=int,
                         help='Number of epochs for the neural network training.',
                         required=False,
-                        default=100)
+                        default=10)
 
     parser.add_argument('--img_h',
                         metavar="Image Height",
                         type=int,
                         help='Pixel height for image rescaling.',
                         required=False,
-                        default=180)
+                        default=256)
 
     parser.add_argument('--img_w',
                         metavar="Image Width",
                         type=int,
                         help='Pixel width for image rescaling.',
                         required=False,
-                        default=180)
+                        default=256)
 
     main(parser.parse_args())
