@@ -18,7 +18,7 @@ threadpoolctl==2.1.0
 tifffile==2020.9.3
 pandas==1.1.5
 tqdm==4.55.1
-seaborn
+seaborn==0.11.1
 sklearn
 tensorflow==2.4.1
 pydot==1.4.2
