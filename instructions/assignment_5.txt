@@ -14,6 +14,10 @@ pip install -r requirements.txt
 # Conda install packages
 conda install opencv ipykernel -y
 
+# Download the data
+Download the data from the kaggle link below, and extract the data to the data folder.
+https://www.kaggle.com/delayedkarma/impressionist-classifier-data
+
 # Run the classification script. 
 # See the available flags by using the '--help' after the command.
 python src/cnn-artists.py
