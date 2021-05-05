@@ -53,24 +53,16 @@ def setting_default_data_dir(assignment=2):
     return data_dir
 
 
-def setting_default_out_dir(assignment=2):
+def setting_default_out_dir():
     """Setting a default Output directory
 
     Returns:
         PosixPath: Output directory
     """
-    
-    if assignment == 2:
 
-        root_dir = Path.cwd()  # Setting root directory.
+    root_dir = Path.cwd()  # Setting root directory.
 
-        out_dir = root_dir / "out"  # Setting data directory.
-        
-    if assignment == 5:
-    
-        root_dir = Path.cwd()
-        
-        out_dir = root_dir / "out"
+    out_dir = root_dir / "out"  # Setting data directory.
 
     return out_dir
 
