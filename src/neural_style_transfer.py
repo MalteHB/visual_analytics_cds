@@ -1,3 +1,8 @@
+"""Script for producing neural style transfer. 
+Highly inspired and adopted from this Tensorflow tutorial: 
+https://www.tensorflow.org/tutorials/generative/style_transfer
+"""
+
 import os
 import argparse
 import matplotlib.pyplot as plt
@@ -5,8 +10,6 @@ import tensorflow as tf
 import tensorflow_hub as hub
 from tqdm import tqdm
 from pathlib import Path
-import numpy as np
-import PIL.Image
 import time
 from utils.utils import setting_default_out_dir
 
@@ -86,6 +89,8 @@ class NeuralStyleTransfer:
                                                                 style_path=self.style_path)  # Loading images
 
         if pretrained:
+            
+            start = time.time()
 
             if self.hub_model_link is None:
 
@@ -94,7 +99,10 @@ class NeuralStyleTransfer:
             hub_model = hub.load(self.hub_model_link)
 
             self.image = hub_model(tf.constant(self.content_image), tf.constant(self.style_image))[0]
+            
+            end = time.time()
 
+            print(f"Total time: {end-start}")
         return
 
     def load_images(self, content_path, style_path):
@@ -164,7 +172,6 @@ class NeuralStyleTransfer:
 
         self.style_weight = style_weight
 
-        
         self.total_variation_weight = total_variation_weight  # To decrease high frequency artifacts total variaton loss is calculated by using a total variation loss
 
         self.model = StyleContentModel(style_layers, content_layers)

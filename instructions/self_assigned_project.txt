@@ -11,7 +11,12 @@ conda activate cds
 # Install requirements
 pip install -r requirements.txt
 
+# Conda install packages
+conda install opencv -y
+
 # Run the neural style transfer script. 
 # See the available flags by using the '--help' after the command.
-# To use the pretrained style transfer model from Magenta use the flag '--pretrained'
 python src/neural_style_transfer.py
+
+# To use the pretrained style transfer model from Magenta use the flag '--pretrained'
+python src/neural_style_transfer.py --pretrained
