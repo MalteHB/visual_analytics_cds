@@ -5,15 +5,13 @@ cd visual_analytics_cds
 # Install anaconda for your OS. See https://docs.anaconda.com/anaconda/install/
 
 # Create and activate conda environment:
-conda create -n cds python=3.8
+conda create -n cds python=3.8 -y
 conda activate cds
 
 # Install requirements
 pip install -r requirements.txt
 
-# Conda install packages
-conda install opencv ipykernel -y
-
 # Run the neural style transfer script. 
 # See the available flags by using the '--help' after the command.
+# To use the pretrained style transfer model from Magenta use the flag '--pretrained'
 python src/neural_style_transfer.py
