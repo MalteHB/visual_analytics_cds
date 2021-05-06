@@ -210,8 +210,8 @@ class NeuralStyleTransfer:
 
                 loss, _ = self._train_step(self.image)
 
-                # Track progress
-                epoch_loss_avg.update_state(loss)
+
+                epoch_loss_avg.update_state(loss)  # Update avg epoch loss
 
             self.train_loss_results.append(epoch_loss_avg.result())  # Store loss for plot
 
@@ -271,7 +271,7 @@ class NeuralStyleTransfer:
 
         print(f"Saving image to: {out_path}")
 
-        tf.keras.preprocessing.image.save_img(out_path, image[0])
+        tf.keras.preprocessing.image.save_img(out_path, image[0])  # Saving image
 
     def _preprocess_image(self, image):
         """Preprocesses an image.
@@ -329,20 +329,30 @@ class NeuralStyleTransfer:
         style_outputs = outputs['style']
 
         style_loss = tf.add_n([tf.reduce_mean((style_outputs[name] - self.style_targets[name])**2)
-                               for name in style_outputs.keys()]
-                              )
-        style_loss *= self.style_weight / len(self.style_layers)
+                               for name in style_outputs.keys()])  # Calculate absolute style loss
+
+        style_loss *= self.style_weight / len(self.style_layers)  # Assign weight to absolute loss
 
         content_loss = tf.add_n([tf.reduce_mean((content_outputs[name] - self.content_targets[name])**2)
-                                for name in content_outputs.keys()])
-        content_loss *= self.content_weight / len(self.content_layers)
-        loss = style_loss + content_loss
+                                for name in content_outputs.keys()])  # Calculate absolute content loss
+
+        content_loss *= self.content_weight / len(self.content_layers)  # Assign weight to absolute loss
+
+        loss = style_loss + content_loss  # Combine losses
 
         return loss
 
     @tf.function()
     def _train_step(self, image):
+        """Training step for the model.
 
+        Args:
+            image (tf.Tensor): Content image to train on.
+
+        Returns:
+            loss(tf.Tensor): Loss of the model from the 'prediction'
+            grad(tf.Tensor): Gradients from the loss and the image
+        """
         with tf.GradientTape() as tape:
             outputs = self.model(image)
             loss = self._style_content_loss(outputs)
@@ -358,50 +368,66 @@ class NeuralStyleTransfer:
 
 
 class StyleContentModel(tf.keras.models.Model):
+    """Class for the style content model
+
+    Args:
+        tf (tf.keras.models.Model): Keras model
+    """
 
     def __init__(self, style_layers, content_layers):
         super(StyleContentModel, self).__init__()
 
-        # The main
-        self.vgg = self._vgg_layers(style_layers + content_layers)
-        self.vgg.trainable = False
+
+        self.vgg = self._vgg_layers(style_layers + content_layers)  # Create VGG19 model with the chosen layers
+        self.vgg.trainable = False  # It is not trainable
 
         # Used as keys in dict creation
         self.style_layers = style_layers
         self.content_layers = content_layers
-        # self.num_style_layers = len(style_layers)
 
     def call(self, inputs):
-        # Process the image input
-        "Expects float input in [0,1]"
+        """Creates the output dictionaries for the content and style image
+
+        Args:
+            inputs (list): Lists of style and content layers
+
+        Returns:
+            dict: Dictionary with content and style outputs
+        """
+
+        # Preprocessing the inputs
         inputs = inputs * 255.0
         preprocessed_input = tf.keras.applications.vgg19.preprocess_input(inputs)
 
-        # Feed the preprocessed image to the VGG19 model
-        outputs = self.vgg(preprocessed_input)
+        outputs = self.vgg(preprocessed_input) # Feed the preprocessed image to the VGG19 model
 
-        # Separate style and content outputs
         style_outputs, content_outputs = (outputs[:len(self.style_layers)],
-                                          outputs[len(self.style_layers):])
+                                          outputs[len(self.style_layers):])  # Separate style and content outputs
 
-        # Process style output before dict creation
-        style_outputs = [self._gram_matrix(style_output) for style_output in style_outputs]
+        style_outputs = [self._gram_matrix(style_output) for style_output in style_outputs]  # Process style output before dict creation
 
-        # Create two dicts for content and style outputs
         content_dict = {content_name: value
                         for content_name, value
-                        in zip(self.content_layers, content_outputs)}
+                        in zip(self.content_layers, content_outputs)}  # Create two dicts for content and style outputs
 
         style_dict = {style_name: value
                       for style_name, value
                       in zip(self.style_layers, style_outputs)}
 
-        return {'content': content_dict, 'style': style_dict}
+        output_dict = {'content': content_dict, 'style': style_dict}  # Create a combined dict
 
-    # Creates a pre-trained VGG model which takes an input and returns a list of intermediate output values
+        return output_dict
+
     def _vgg_layers(self, layer_names):
-        """ Creates a vgg model that returns a list of intermediate output values."""
-        # Load our model. Load pretrained VGG, trained on imagenet data
+        """Creates a pre-trained VGG model which takes an input and returns a list of intermediate output values
+
+        Args:
+            layer_names (list): Names of the VGG19 layers to be used
+
+        Returns:
+            model(tf.keras.model): Keras model with the VGG19 layers
+        """
+        # Load the pretrained VGG19 and create it with only the assigned layers
         vgg = tf.keras.applications.VGG19(include_top=False, weights='imagenet')
         vgg.trainable = False
         outputs = [vgg.get_layer(name).output for name in layer_names]
@@ -409,15 +435,24 @@ class StyleContentModel(tf.keras.models.Model):
         return model
 
     def _gram_matrix(self, input_tensor):
-        # Tensor contraction over specified indices and outer product.
-        # Matrix multiplication
-        result = tf.linalg.einsum('bijc,bijd->bcd', input_tensor, input_tensor)
-        # Save the shape of the input tensor
-        input_shape = tf.shape(input_tensor)
-        # Casts a tensor to a new type.
-        num_locations = tf.cast(input_shape[1] * input_shape[2], tf.float32)
-        # Divide matrix multiplication output to num_locations
-        return result / (num_locations)
+        """Calculates tensor contraction over the outer product and the specified indices
+
+        Args:
+            input_tensor (tf.Tensor): Input tensor from the layers
+
+        Returns:
+            tf.Tensor: Gram matrix
+        """
+
+        result = tf.linalg.einsum('bijc,bijd->bcd', input_tensor, input_tensor)  # Matrix multiplication
+
+        input_shape = tf.shape(input_tensor)  # Save the shape of the input tensor
+
+        num_locations = tf.cast(input_shape[1] * input_shape[2], tf.float32)  # Casts a tensor to a new type.
+
+        gram_matrix = result / (num_locations) # Divide matrix multiplication output to num_locations
+
+        return gram_matrix
 
 
 if __name__ == "__main__":

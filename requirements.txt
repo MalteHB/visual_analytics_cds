@@ -22,3 +22,4 @@ seaborn==0.11.1
 sklearn
 tensorflow==2.4.1
 pydot==1.4.2
+tensorflow_hub==0.12.0
