@@ -1,5 +1,5 @@
-"""Script for producing neural style transfer. 
-Highly inspired and adopted from this Tensorflow tutorial: 
+"""Script for producing neural style transfer.
+Highly inspired and adopted from this Tensorflow tutorial:
 https://www.tensorflow.org/tutorials/generative/style_transfer
 """
 
@@ -89,7 +89,7 @@ class NeuralStyleTransfer:
                                                                 style_path=self.style_path)  # Loading images
 
         if pretrained:
-            
+
             start = time.time()
 
             if self.hub_model_link is None:
@@ -99,7 +99,7 @@ class NeuralStyleTransfer:
             hub_model = hub.load(self.hub_model_link)
 
             self.image = hub_model(tf.constant(self.content_image), tf.constant(self.style_image))[0]
-            
+
             end = time.time()
 
             print(f"Total time: {end-start}")
@@ -181,7 +181,7 @@ class NeuralStyleTransfer:
 
         self.content_targets = self.model(content_image)['content']
 
-        # Using Adam as the optimizer. 
+        # Using Adam as the optimizer.
         self.opt = tf.optimizers.Adam(learning_rate=0.005, beta_1=0.99, epsilon=1e-1)
 
     def train_model(self, epochs=25, steps_per_epoch=100):
@@ -216,7 +216,6 @@ class NeuralStyleTransfer:
                 step += 1
 
                 loss, _ = self._train_step(self.image)
-
 
                 epoch_loss_avg.update_state(loss)  # Update avg epoch loss
 
@@ -330,7 +329,7 @@ class NeuralStyleTransfer:
         Returns:
             loss (): [description]
         """
-        
+
         # Taking content and style outputs
         content_outputs = outputs['content']
         style_outputs = outputs['style']
@@ -361,12 +360,17 @@ class NeuralStyleTransfer:
             grad(tf.Tensor): Gradients from the loss and the image
         """
         with tf.GradientTape() as tape:
+
             outputs = self.model(image)
+
             loss = self._style_content_loss(outputs)
+
             loss += self.total_variation_weight * tf.image.total_variation(image)
 
         grad = tape.gradient(loss, image)
+
         self.opt.apply_gradients([(grad, image)])
+
         image.assign(tf.clip_by_value(image,
                                       clip_value_min=0.0,
                                       clip_value_max=1.0))
@@ -383,7 +387,6 @@ class StyleContentModel(tf.keras.models.Model):
 
     def __init__(self, style_layers, content_layers):
         super(StyleContentModel, self).__init__()
-
 
         self.vgg = self._vgg_layers(style_layers + content_layers)  # Create VGG19 model with the chosen layers
         self.vgg.trainable = False  # It is not trainable
@@ -406,7 +409,7 @@ class StyleContentModel(tf.keras.models.Model):
         inputs = inputs * 255.0
         preprocessed_input = tf.keras.applications.vgg19.preprocess_input(inputs)
 
-        outputs = self.vgg(preprocessed_input) # Feed the preprocessed image to the VGG19 model
+        outputs = self.vgg(preprocessed_input)  # Feed the preprocessed image to the VGG19 model
 
         style_outputs, content_outputs = (outputs[:len(self.style_layers)],
                                           outputs[len(self.style_layers):])  # Separate style and content outputs
@@ -436,9 +439,13 @@ class StyleContentModel(tf.keras.models.Model):
         """
         # Load the pretrained VGG19 and create it with only the assigned layers
         vgg = tf.keras.applications.VGG19(include_top=False, weights='imagenet')
+
         vgg.trainable = False
+
         outputs = [vgg.get_layer(name).output for name in layer_names]
+
         model = tf.keras.Model([vgg.input], outputs)
+
         return model
 
     def _gram_matrix(self, input_tensor):
@@ -457,7 +464,7 @@ class StyleContentModel(tf.keras.models.Model):
 
         num_locations = tf.cast(input_shape[1] * input_shape[2], tf.float32)  # Casts a tensor to a new type.
 
-        gram_matrix = result / (num_locations) # Divide matrix multiplication output to num_locations
+        gram_matrix = result / (num_locations)  # Divide matrix multiplication output to num_locations
 
         return gram_matrix
 
