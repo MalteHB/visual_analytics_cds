@@ -2,6 +2,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+import os
 
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
@@ -25,9 +26,13 @@ def main(args):
 
     batch_size = args.bs
 
+    epochs = args.e
+
     img_height = args.img_h
 
     img_width = args.img_w
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu  # Setting visible GPU devices
 
     cnn = CNNClassification()
 
@@ -41,7 +46,7 @@ def main(args):
     cnn.create_model(img_height=img_height,
                      img_width=img_width)
 
-    cnn.train()
+    cnn.train(epochs=epochs)
 
     cnn.plot_training()
 
@@ -94,10 +99,6 @@ class CNNClassification:
 
         # Preprocessing data for evaluation and classification report
 
-        self.val_images = np.concatenate([images for images, labels in self.val_ds], axis=0)
-
-        self.val_labels = np.concatenate([labels for images, labels in self.val_ds], axis=0)
-
         self.train_class_names = self.train_ds.class_names
 
         self.val_class_names = self.val_ds.class_names
@@ -114,6 +115,7 @@ class CNNClassification:
 
     def create_model(self, img_height, img_width, print_model=True):
 
+        # Creating model
         self.model = Sequential([layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
                                  layers.Conv2D(16, 3, padding='same', activation='relu'),
                                  layers.MaxPooling2D(),
@@ -126,6 +128,7 @@ class CNNClassification:
                                  layers.Dense(self.num_classes)
                                  ])
 
+        # Compiling model
         self.model.compile(optimizer='adam',
                            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                            metrics=['accuracy'])
@@ -138,6 +141,7 @@ class CNNClassification:
 
         self.epochs = epochs
 
+        # Train model
         self.history = self.model.fit(self.train_ds,
                                       validation_data=self.val_ds,
                                       epochs=self.epochs
@@ -145,6 +149,7 @@ class CNNClassification:
 
     def plot_training(self, history=None):
 
+        # Extracting accuracy and loss metrics
         acc = self.history.history['accuracy']
         val_acc = self.history.history['val_accuracy']
 
@@ -153,6 +158,7 @@ class CNNClassification:
 
         epochs_range = range(self.epochs)
 
+        # Plotting using matplotlib
         plt.figure(figsize=(8, 8))
         plt.subplot(1, 2, 1)
         plt.plot(epochs_range, acc, label='Training Accuracy')
@@ -164,24 +170,28 @@ class CNNClassification:
         plt.plot(epochs_range, loss, label='Training Loss')
         plt.plot(epochs_range, val_loss, label='Validation Loss')
         plt.legend(loc='upper right')
-        plt.title('Training and Validation Loss')
+        plt.title(f'Training and Validation Loss \nEpochs: {self.epochs} ')
 
         out_file = self.out_dir / "train_val_history.png"
         plt.savefig(out_file)
 
     def evaluate_model(self, batch_size=32):
 
-        predictions = self.model.predict(self.val_images, batch_size=batch_size)
+        predictions = self.model.predict(self.val_ds, batch_size=batch_size)  # predictions
 
-        eval_report = classification_report(self.val_labels,
-                                            predictions.argmax(axis=1),
-                                            target_names=self.val_class_names)
+        predictions = tf.argmax(predictions, axis=1)  # Getting the highest values
+
+        labels = tf.concat([y for x, y in self.val_ds], axis=0)  # Extracting labels
+
+        eval_report = classification_report(labels,
+                                            predictions,
+                                            target_names=self.val_class_names)  # Creating classification report
 
         print(eval_report)
 
         out_file = self.out_dir / "classification_report.txt"
 
-        out_file.write_text(eval_report)
+        out_file.write_text(eval_report)  # Writing report
 
 
 if __name__ == "__main__":
@@ -234,5 +244,12 @@ if __name__ == "__main__":
                         help='Pixel width for image rescaling.',
                         required=False,
                         default=256)
+
+    parser.add_argument('--gpu',
+                        metavar="GPU device",
+                        type=str,
+                        help='Which GPU device to use. Defaults to -1 to not allow GPU usage.',
+                        required=False,
+                        default="-1")
 
     main(parser.parse_args())
