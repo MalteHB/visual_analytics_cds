@@ -79,7 +79,16 @@ class LogisticRegressionMNIST:
 
         return X_train, X_test, y_train, y_test
 
-    def train(self, X_train, X_test, y_train, y_test):
+    def train(self, X_train, y_train):
+        """Trains a the model.
+
+        Args:
+            X_train (np.array): Training images.
+            y_train (np.array): Training labels
+
+        Returns:
+            sklearn.model: Logistic Regression model
+        """
 
         clf_model = LogisticRegression(penalty='none',
                                        tol=0.1,
@@ -92,9 +101,9 @@ class LogisticRegressionMNIST:
         """Prints the evaluation metrics to the terminal.
 
         Args:
-            clf_model (sklearnModel): [description]
-            X_test ([type]): [description]
-            y_test ([type]): [description]
+            clf_model (sklearnModel): Logistic Regression model
+            X_test (np.array): Test images.
+            y_test (np.array): Test labels.
         """
 
         y_pred = clf_model.predict(X_test)

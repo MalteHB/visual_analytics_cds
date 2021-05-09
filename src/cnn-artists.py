@@ -113,6 +113,13 @@ class CNNClassification:
         self.val_ds = self.val_ds.cache().prefetch(buffer_size=AUTOTUNE)  # Caching validaton data
 
     def create_model(self, img_height, img_width, print_model=True):
+        """Creates the CNN model.
+
+        Args:
+            img_height (int): Image height to be used in preprocessing
+            img_width (int): Image width to be used in preprocessing
+            print_model (bool, optional): Whether to print model summary to terminal or not. Defaults to True.
+        """
 
         # Creating model
         self.model = Sequential([layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
@@ -136,7 +143,12 @@ class CNNClassification:
 
             self.model.summary()
 
-    def train(self, epochs=5):
+    def train(self, epochs=10):
+        """Trains the model.
+
+        Args:
+            epochs (int, optional): Number of epochs during training. Defaults to 10.
+        """
 
         self.epochs = epochs
 
@@ -147,6 +159,11 @@ class CNNClassification:
                                       )
 
     def plot_training(self, history=None):
+        """Plots the model.
+
+        Args:
+            history (tf.History, optional): History object from a fitted model. Defaults to None.
+        """
 
         # Extracting accuracy and loss metrics
         acc = self.history.history['accuracy']
@@ -175,6 +192,12 @@ class CNNClassification:
         plt.savefig(out_file)
 
     def evaluate_model(self, batch_size=32):
+        """Evaluates the model and prints a classification report 
+           to the terminal as well as saving it to the output directory,
+
+        Args:
+            batch_size (int, optional): Batch Size. Defaults to 32.
+        """
 
         predictions = self.model.predict(self.val_ds, batch_size=batch_size)  # predictions
 

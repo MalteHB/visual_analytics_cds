@@ -62,13 +62,23 @@ class EdgeDetection:
 
         if self.out_dir is None:
 
-            self.out_dir = setting_default_out_dir(assignment=2)  # Setting default output directory.
+            self.out_dir = setting_default_out_dir()  # Setting default output directory.
 
             print(f"\nOutput directory is not specified.\nSetting it to '{self.out_dir}'.")
 
         self.out_dir.mkdir(parents=True, exist_ok=True)  # Making sure output directory exists.
 
     def create_image_ROI(self, target_image_filepath, out_path, pt1=(2900, 2800), pt2=(1400, 875), color=(0, 255, 0), thickness=3):
+        """Creates a rectangular region of interest (ROI) in the image.
+
+        Args:
+            target_image_filepath (PosixPath): Path to the image.
+            out_path (PosixPath): Path to save the image with a drawed ROI.
+            pt1 (tuple, optional): Starting coordinates of the rectangle. Defaults to (2900, 2800).
+            pt2 (tuple, optional): Ending coordinates of the rectangle. Defaults to (1400, 875).
+            color (tuple, optional): Color of the rectangle. Defaults to (0, 255, 0).
+            thickness (int, optional): Thickness of the rectangle. Defaults to 3.
+        """
 
         if target_image_filepath is None:
 
@@ -84,11 +94,19 @@ class EdgeDetection:
 
         target_image = load_image(target_image_filepath)
 
-        cv2.rectangle(target_image, pt1=pt1, pt2=pt2, color=color, thickness=thickness)
+        cv2.rectangle(target_image, pt1=pt1, pt2=pt2, color=color, thickness=thickness)  # Draw ROI
 
-        cv2.imwrite(str(out_path), target_image)
+        cv2.imwrite(str(out_path), target_image)  # Save image
 
     def crop_image(self, target_image_filepath, out_path, start_point=(1400, 875), end_point=(2900, 2800)):
+        """Crops the image to a rectangular ROI.
+
+        Args:
+            target_image_filepath (PosixPath): Path to the image.
+            out_path (PosixPath): Path to save the cropped image.
+            start_point (tuple, optional): Starting coordinates of the rectangle. Defaults to (1400, 875).
+            end_point (tuple, optional): Ending coordinates of the rectangle. Defaults to (2900, 2800).
+        """
 
         if target_image_filepath is None:
 
@@ -106,17 +124,17 @@ class EdgeDetection:
 
         target_image = load_image(target_image_filepath)
 
-        # mask = np.zeros(target_image.shape[:2], dtype="uint8")
+        cropped = target_image[start_point[1]:end_point[1], start_point[0]:end_point[0]]  # Crops image
 
-        # cv2.rectangle(mask, pt1=pt1, pt2=pt2, color=color, thickness=thickness)
-
-        # cropped = cv2.bitwise_and(target_image, target_image, mask=mask)
-
-        cropped = target_image[start_point[1]:end_point[1], start_point[0]:end_point[0]]
-
-        cv2.imwrite(str(out_path), cropped)
+        cv2.imwrite(str(out_path), cropped)  # Saves image
 
     def find_letters(self, target_image_filepath, out_path, ):
+        """Finds the letters on a target image.
+
+        Args:
+            target_image_filepath (PosixPath): Path to an image containing letters. Preferably cropped to only contain the letters.
+            out_path (PosixPath): Path to save the image to.
+        """
 
         if target_image_filepath is None:
 
@@ -132,15 +150,15 @@ class EdgeDetection:
 
         target_image = load_image(target_image_filepath)
 
-        grey_image = cv2.cvtColor(target_image, cv2.COLOR_BGR2GRAY)
+        grey_image = cv2.cvtColor(target_image, cv2.COLOR_BGR2GRAY)  # Creates gray scale image.
 
-        blurred = cv2.GaussianBlur(grey_image, (5, 5), 0)
+        blurred = cv2.GaussianBlur(grey_image, (5, 5), 0)  # Applies gaussian blur to remove high frequency edges
 
-        canny = cv2.Canny(blurred, 90, 150)
+        canny = cv2.Canny(blurred, 90, 150)  # Applies canny edge detection
 
         (contours, _) = cv2.findContours(canny,
                                          cv2.RETR_EXTERNAL,
-                                         cv2.CHAIN_APPROX_SIMPLE)
+                                         cv2.CHAIN_APPROX_SIMPLE)  # Detects the contours from the canny image.
 
         letters = cv2.drawContours(target_image,  # Draw contours on original
                                    contours,    # Our list of contours
@@ -148,7 +166,7 @@ class EdgeDetection:
                                    (0, 255, 0),   # Contour color
                                    2)             # Contour pixel width
 
-        cv2.imwrite(str(out_path), letters)
+        cv2.imwrite(str(out_path), letters)  # Write image with edges detected.
 
 
 if __name__ == "__main__":

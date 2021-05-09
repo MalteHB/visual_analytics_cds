@@ -90,6 +90,17 @@ class NeuralNetworkMNIST:
         return X_train, X_test, y_train, y_test
 
     def train(self, X_train, y_train, epochs=100, early_stopping=True):
+        """Trains the neural network.
+
+        Args:
+            X_train (np.array): Training images.
+            y_train (np.array): Training labels
+            epochs (int, optional): Number of epochs. Defaults to 100.
+            early_stopping (bool, optional): Whether to use early stopping or not. Defaults to True.
+
+        Returns:
+            utils.neuralnetwork_malte.NeuralNetworkMalte: A trained neural network.
+        """
 
         # train network
         nn_model = NeuralNetworkMalte([X_train.shape[1], 32, 16, 10])
@@ -102,9 +113,9 @@ class NeuralNetworkMNIST:
         """Prints the evaluation metrics to the terminal.
 
         Args:
-            nn_model (sklearnModel): [description]
-            X_test ([type]): [description]
-            y_test ([type]): [description]
+            nn_model (utils.neuralnetwork_malte.NeuralNetworkMalte): A trained neural network.
+            X_test (np.array): Test images.
+            y_test (np.array): Test labels.
         """
 
         # evaluate network
