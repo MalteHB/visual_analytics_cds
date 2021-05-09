@@ -5,7 +5,9 @@ Multilayered feedforward neural network
 # import the necessary packages
 import numpy as np
 
+
 class NeuralNetworkMalte:
+
     def __init__(self, layers, alpha=.1):
         # init list of W matrices, store architecture and learning rate
         self.W = list()
@@ -65,6 +67,9 @@ class NeuralNetworkMalte:
                         if previous_loss < current_loss:
 
                             print(f"Early stopping the model training since the previous loss: {previous_loss}, is less than the current loss: {current_loss}")
+                            
+                            return
+
                         else:
 
                             print("epoch={}, loss={:.7f}".format(epoch + 1, current_loss))
